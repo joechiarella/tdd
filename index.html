@@ -1,40 +1,172 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
 
-		<title>reveal.js</title>
+    <title>reveal.js</title>
 
-		<link rel="stylesheet" href="dist/reset.css">
-		<link rel="stylesheet" href="dist/reveal.css">
-		<link rel="stylesheet" href="dist/theme/black.css">
+    <link rel="stylesheet" href="dist/reset.css" />
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/beige.css" />
 
-		<!-- Theme used for syntax highlighted code -->
-		<link rel="stylesheet" href="plugin/highlight/monokai.css">
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+    <!-- Theme used for syntax highlighted code -->
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h1>Test Driven Development</h1>
+        </section>
 
-		<script src="dist/reveal.js"></script>
-		<script src="plugin/notes/notes.js"></script>
-		<script src="plugin/markdown/markdown.js"></script>
-		<script src="plugin/highlight/highlight.js"></script>
-		<script>
-			// More info about initialization & config:
-			// - https://revealjs.com/initialization/
-			// - https://revealjs.com/config/
-			Reveal.initialize({
-				hash: true,
+        <section>
+          <h2>How it works</h2>
+          <ul>
+            <li class="fragment fade-in-then-semi-out">
+              Make a list of what tests you need
+            </li>
+            <li class="fragment fade-in-then-semi-out">
+              Take the simplest test from that list and write it
+            </li>
+            <li class="fragment fade-in-then-semi-out">
+              Run all of the tests. The new test should fail
+            </li>
+            <li class="fragment fade-in-then-semi-out">Make the test pass</li>
+            <li class="fragment fade-in-then-semi-out">Repeat</li>
+          </ul>
+        </section>
 
-				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
-			});
-		</script>
-	</body>
+        <section>
+          <h2>Let's build Salesloft from scratch</h2>
+          <h3 class="fragment">Or maybe just a piece of it</h3>
+          <h4 class="fragment">... a very small piece</h4>
+        </section>
+
+        <section>
+          <h2>User Story Time</h2>
+          <div>
+            Requirement: Add an API for listing person records, with sorting,
+            filtering, and pagination
+          </div>
+        </section>
+
+        <section data-auto-animate>
+          <h3>Step 1: Make a list of some tests we need</h3>
+          <ul>
+            <li class="fragment">With 3 users...</li>
+            <ul>
+              <li class="fragment">Return all 3 users</li>
+              <li class="fragment">Sort by email</li>
+              <li class="fragment">Filter by email</li>
+              <li class="fragment">Pagination</li>
+            </ul>
+            <li class="fragment">With 0 users...</li>
+            <ul>
+              <li class="fragment">Return empty list</li>
+            </ul>
+          </ul>
+        </section>
+
+        <section data-auto-animate>
+          <h3>Choose the simplest one</h3>
+          <ul>
+            <li>With 0 users...</li>
+            <ul>
+              <li>Return empty list</li>
+            </ul>
+            <li>With 3 users...</li>
+            <ul>
+              <li>Return all 3 users</li>
+              <li>Sort by email</li>
+              <li>Filter by email</li>
+              <li>Pagination</li>
+            </ul>
+          </ul>
+        </section>
+
+        <section>
+          <h3>Let's do this</h3>
+          Starting with an empty controller and an empty test
+          <pre><code data-trim data-noescape class="language-ruby">
+class PeopleController < ApplicationController
+end
+          </code></pre>
+
+          <pre><code data-trim data-noescape class="language-ruby">
+RSpec.describe 'People', type: :request do
+  describe 'GET /index' do
+    it '' do
+    end
+  end
+end
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Writing our first test</h3>
+          Before we write any code, let's write our first test
+
+          <pre><code data-trim data-noescape data-line-numbers="3-6" class="language-ruby">
+RSpec.describe 'People', type: :request do
+  describe 'GET /index' do
+    it 'returns nothing' do
+      get "/people"
+      expect(response).to have_http_status :success
+    end
+  end
+end
+          </code></pre>
+          <pre><code data-trim data-noescape class="language-shell">
+  1) People GET /index returns nothing
+     Failure/Error: get "/people"
+     
+     ActionController::RoutingError:
+       No route matches [GET] "/people"
+          </code></pre>
+          It fails because we've literally written nothing yet
+        </section>
+
+        <section>
+          Let's fix that error by adding a route
+
+          <pre><code data-trim data-noescape data-line-numbers="2" class="language-ruby">
+Rails.application.routes.draw do
+  resources :people, only: [:index]
+end
+          </code></pre>
+          <pre><code data-trim data-noescape class="language-shell">
+  1) People GET /index returns nothing
+     Failure/Error: get "/people"
+     
+     AbstractController::ActionNotFound:
+       The action 'index' could not be found for PeopleController
+          </code></pre>
+          Past that error, now onto the controller
+        </section>
+      </div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script>
+      // More info about initialization & config:
+      // - https://revealjs.com/initialization/
+      // - https://revealjs.com/config/
+      Reveal.initialize({
+        hash: true,
+        disableLayout: false,
+        <!--width: "100%",-->
+        <!--height: "100%",-->
+        // Learn about plugins: https://revealjs.com/plugins/
+        plugins: [RevealMarkdown, RevealHighlight, RevealNotes],
+        <!--margin: 0.1,-->
+      });
+    </script>
+  </body>
 </html>
