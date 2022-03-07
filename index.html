@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="dist/reset.css" />
     <link rel="stylesheet" href="dist/reveal.css" />
-    <link rel="stylesheet" href="dist/theme/beige.css" />
+    <link rel="stylesheet" href="dist/theme/blood.css" />
 
     <!-- Theme used for syntax highlighted code -->
     <link rel="stylesheet" href="plugin/highlight/monokai.css" />
@@ -20,7 +20,23 @@
     <div class="reveal">
       <div class="slides">
         <section>
-          <h1>Test Driven Development</h1>
+          <h2>Test Driven Development</h2>
+          <img class="r-stretch" src="bridges.png"/>
+        </section>
+
+        <section>
+          <h2>Have you ever...</h2>
+          <ul>
+            <li class="fragment fade-in-then-semi-out">written code and not known how to test it?</li>
+            <li class="fragment fade-in-then-semi-out">written code that you thought you might need, but later never used it?</li>
+            <li class="fragment fade-in-then-semi-out">started a complex task and weren't sure where to start?</li>
+          </ul>
+        </section>
+
+
+        <section>
+          <h3>Kent Beck has entered the Arena</h3>
+          <img class="r-stretch" src="tdd.png"/>
         </section>
 
         <section>
@@ -36,6 +52,7 @@
               Run all of the tests. The new test should fail
             </li>
             <li class="fragment fade-in-then-semi-out">Make the test pass</li>
+            <li class="fragment fade-in-then-semi-out">Remove duplication</li>
             <li class="fragment fade-in-then-semi-out">Repeat</li>
           </ul>
         </section>
@@ -89,14 +106,15 @@
         </section>
 
         <section>
-          <h3>Let's do this</h3>
-          Starting with an empty controller and an empty test
-          <pre><code data-trim data-noescape class="language-ruby">
+          <section>
+            <h3>Let's do this</h3>
+            Starting with an empty controller and an empty test
+            <pre><code data-trim data-noescape class="language-ruby">
 class PeopleController < ApplicationController
 end
           </code></pre>
 
-          <pre><code data-trim data-noescape class="language-ruby">
+            <pre><code data-trim data-noescape class="language-ruby">
 RSpec.describe 'People', type: :request do
   describe 'GET /index' do
     it '' do
@@ -104,13 +122,12 @@ RSpec.describe 'People', type: :request do
   end
 end
           </code></pre>
-        </section>
+          </section>
 
-        <section>
-          <h3>Writing our first test</h3>
-          Before we write any code, let's write our first test
+          <section>
+            Before we write any code, let's write our first test
 
-          <pre><code data-trim data-noescape data-line-numbers="3-6" class="language-ruby">
+            <pre><code data-trim data-noescape data-line-numbers="3-6" class="language-ruby">
 RSpec.describe 'People', type: :request do
   describe 'GET /index' do
     it 'returns nothing' do
@@ -120,32 +137,228 @@ RSpec.describe 'People', type: :request do
   end
 end
           </code></pre>
-          <pre><code data-trim data-noescape class="language-shell">
+          </section>
+          <section>
+            It fails because we've literally written nothing yet
+            <pre><code data-trim data-noescape class="language-shell">
   1) People GET /index returns nothing
      Failure/Error: get "/people"
      
      ActionController::RoutingError:
        No route matches [GET] "/people"
           </code></pre>
-          It fails because we've literally written nothing yet
-        </section>
+          </section>
 
-        <section>
-          Let's fix that error by adding a route
+          <section>
+            Let's fix that error by adding a route
 
-          <pre><code data-trim data-noescape data-line-numbers="2" class="language-ruby">
+            <pre><code data-trim data-noescape data-line-numbers="2" class="language-ruby">
 Rails.application.routes.draw do
   resources :people, only: [:index]
 end
           </code></pre>
-          <pre><code data-trim data-noescape class="language-shell">
+          </section>
+          <section>
+            Past that error, but now the controller needs work
+            <pre><code data-trim data-noescape class="language-shell">
   1) People GET /index returns nothing
      Failure/Error: get "/people"
      
      AbstractController::ActionNotFound:
        The action 'index' could not be found for PeopleController
           </code></pre>
-          Past that error, now onto the controller
+          </section>
+
+          <section>
+            Now let's add the index method
+
+            <pre><code data-trim data-noescape data-line-numbers="2-4" class="language-ruby">
+class PeopleController < ApplicationController
+  def index
+    render json: []
+  end
+end
+          </code></pre>
+            <pre><code data-trim data-noescape class="language-shell">
+          1 example, 0 failures
+          </code></pre>
+            Celebrate!
+          </section>
+        </section>
+
+        <section>
+          <h2>Let's review</h2>
+          <ul>
+            <li class="fragment fade-in-then-semi-out">
+              We worked backwards towards a solution
+            </li>
+            <li class="fragment fade-in-then-semi-out">
+              We wrote the bare minimum to get the test to pass
+            </li>
+            <li class="fragment fade-in-then-semi-out">
+              We justified every line of code we wrote by fixing a test
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <section>
+            Let's add a real test
+
+            <pre><code data-trim data-noescape class="language-ruby">
+  context 'with a Person record' do
+    let(:email) { "joe@salesloft.com" }
+    let(:name) { "Joe" }
+    before { Person.create(email: email, name: name) }
+
+    it 'returns that person' do
+      get '/people'
+      expect(response_json).to eq([{email: email, name: name}])
+    end
+  end
+          </code></pre>
+          </section>
+          <section>
+            Does it pass? Of course not
+            <pre><code data-trim data-noescape class="language-shell">
+  1) People GET /index with a Person record returns that person
+     Failure/Error: expect(response_json).to eq([{email: email, name: name}])
+     
+       expected: [{:email=>"joe@salesloft.com", :name=>"Joe"}]
+            got: []
+          </code></pre>
+          </section>
+
+          <section>
+            Let's fix that controller
+            <pre><code data-trim data-noescape class="language-ruby">
+class PeopleController < ApplicationController
+  def index
+    render json: Person.all
+  end
+end
+          </code></pre>
+          </section>
+          <section>
+            It returns too much data
+            <pre><code data-trim data-noescape class="language-shell">
+  1) People GET /index with a Person record returns that person
+     Failure/Error: expect(response_json).to eq([{email: email, name: name}])
+     
+       expected: [{:email=>"joe@salesloft.com", :name=>"Joe"}]
+            got: [{:created_at=>"2022-03-02T01:34:30.412Z", 
+                    :email=>"joe@salesloft.com", 
+                    :id=>1, 
+                    :name=>"Joe", 
+                    :updated_at=>"2022-03-02T01:34:30.412Z"}]
+          </code></pre>
+          </section>
+          <section>
+            <h3>Pause here for a second</h3>
+            <p>Is the test right? Or is the code right?</p>
+            <ul>
+              <li class="fragment fade-in-then-semi-out">
+                We could change the code to only return the two attributes
+              </li>
+              <li class="fragment fade-in-then-semi-out">
+                Or we could change the test to expect all 5
+              </li>
+              <li class="fragment fade-in">
+                Or we could change the test to allow extra attributes
+              </li>
+            </ul>
+          </section>
+          <section>
+            I chose the first option
+            <pre><code data-trim data-noescape data-line-numbers="3" class="language-ruby">
+class PeopleController < ApplicationController
+  def index
+    render json: Person.all.as_json(only: [:email, :name])
+  end
+end
+          </code></pre>
+            <pre><code data-trim data-noescape class="language-shell">
+Finished in 0.104 seconds (files took 1.22 seconds to load)
+2 examples, 0 failures
+          </code></pre>
+          </section>
+        </section>
+        <section>
+          <h2>Let's review</h2>
+          <ul>
+            <li class="fragment fade-in-then-semi-out">
+              We defined the API contract first
+            </li>
+            <li class="fragment fade-in">
+              We didn't write anything we didn't need
+            </li>
+          </ul>
+        </section>
+        <section>
+          <section>
+            <h2>TDD Best Practices</h2>
+          </section>
+
+          <section>
+            <h4>Start Small</h4>
+            <p class="fragment">Start with the most trivial examples</p>
+            <p class="fragment">Get the test to pass as soon as possible</p>
+            <p class="fragment">Refactor as you go</p>
+          </section>
+
+          <section>
+            <h4>You aren't gonna need it (YAGNI)</h4>
+            <p class="fragment">
+              Every piece of functionality should be justified by a
+              failing test
+            </p>
+            <p class="fragment">
+              Don't speculate about what you might need later
+            </p>
+          </section>
+
+          <section>
+            <h4>Run your tests often</h4>
+            <p class="fragment">Tests should run very very quickly</p>
+            <p class="fragment">Use a 'watch' mode so they run on every save</p>
+          </section>
+
+          <section>
+            <h4>Use pending tests to list your ideas</h4>
+            <pre><code data-trim data-noescape class="language-ruby">
+    context 'with 3 Person records' do
+      it 'sorts by email by default'
+
+      context 'with sort by name param' do
+        it 'sorts by name'
+      end
+    end
+          </code></pre>
+          </section>
+          <section>
+            <pre><code data-trim data-noescape class="language-shell">
+Pending: (Failures listed here are expected and 
+          do not affect your suite's status)
+
+  1) People GET /index with 3 Person records sorts by email by default
+     # Not yet implemented
+     # ./spec/requests/people_spec.rb:22
+
+  2) People GET /index with 3 Person records with sort by name param 
+        sorts by name
+     # Not yet implemented
+     # ./spec/requests/people_spec.rb:25
+
+
+Finished in 0.09462 seconds (files took 1.3 seconds to load)
+4 examples, 0 failures, 2 pending
+          </code></pre>
+          </section>
+          <section>
+            <h4>Test-Driven Bug Fixing</h4>
+            <p class="fragment">When you find a bug, recreate it in a test</p>
+            <p class="fragment">A great way to partner with other developers</p>
+          </section>
         </section>
       </div>
     </div>
@@ -161,6 +374,8 @@ end
       Reveal.initialize({
         hash: true,
         disableLayout: false,
+        width: 1150,
+        height: 720,
         <!--width: "100%",-->
         <!--height: "100%",-->
         // Learn about plugins: https://revealjs.com/plugins/
